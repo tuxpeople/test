@@ -79,7 +79,7 @@ jobs:
     steps:
       - name: Install BuildKit (buildctl)
         run: |
-          sudo apt-get update && sudo apt-get install -y buildkit
+          sudo apt-get update && sudo apt-get install -y moby-buildkit
 
       - name: Start BuildKit Daemon
         run: |
@@ -133,15 +133,30 @@ jobs:
 
   provenance:
     needs: [build]
+    runs-on: ubuntu-latest
     permissions:
       actions: read # for detecting the Github Actions environment.
       id-token: write # for creating OIDC tokens for signing.
       packages: write # for uploading attestations.
-    #if: startsWith(github.ref, 'refs/tags/')
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
-    with:
-      image: ${{ needs.build.outputs.image }}
-      digest: ${{ needs.build.outputs.digest }}
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Generate SLSA attestation
+        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+        with:
+          image: ${{ needs.build.outputs.image }}
+          digest: ${{ needs.build.outputs.digest }}
+          registry-username: ${{ github.actor }}
+        secrets:
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sign the Image and Attestation
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-version: "latest"
+
+      - name: Sign Image
+        run: |
+          cosign sign --yes ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Push Attestation
+        run: |
+          cosign attest --yes --predicate attestation.json ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

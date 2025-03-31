@@ -79,12 +79,9 @@ jobs:
     steps:
       - name: Install BuildKit (buildctl)
         run: |
-          sudo apt-get update && sudo apt-get install -y moby-buildkit
-
-      - name: Start BuildKit Daemon
-        run: |
-          sudo systemctl start buildkit
-          sleep 5  # Warte, bis BuildKit läuft
+          wget https://github.com/moby/buildkit/releases/download/$VERSION/buildkit-$VERSION.linux-amd64.tar.gz -O buildkit.tar.gz
+          tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
+          buildctl --version
 
       - name: Download Docker Image
         uses: actions/download-artifact@v4

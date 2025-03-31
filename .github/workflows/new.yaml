@@ -79,6 +79,8 @@ jobs:
     steps:
       - name: Install BuildKit (buildctl)
         run: |
+          VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/docker/buildx/releases/latest)
+          VERSION=${VERSION##*/}
           wget https://github.com/moby/buildkit/releases/download/$VERSION/buildkit-$VERSION.linux-amd64.tar.gz -O buildkit.tar.gz
           tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
           buildctl --version

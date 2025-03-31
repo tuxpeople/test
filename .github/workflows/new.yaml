@@ -131,11 +131,23 @@ jobs:
         with:
           sarif_file: "${{ steps.anchore.outputs.sarif }}"
 
-      - name: Run Clair update
+      - name: Grab cache Clair DB
+        uses: actions/cache@v3
+        with:
+          path: matcher.db
+          key: matcher.db
+
+      - name: Run Clair update DB
         uses: quay/clair-action@main
         with:
           db-file: matcher.db
           mode: update
+
+      - name: update cache Clair DB
+        uses: actions/cache@v3
+        with:
+          path: matcher.db
+          key: matcher.db
 
       - name: Run Clair scan
         uses: quay/clair-action@main

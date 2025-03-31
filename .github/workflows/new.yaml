@@ -127,7 +127,7 @@ jobs:
 
       - name: Upload Anchore scan SARIF report
         if: always()
-        uses: github/codeql-action/upload-sarif@9f45e7498becbbc08084a122b4be9ab534ac6d88
+        uses: github/codeql-action/upload-sarif@efffb483ec7bb162c4b7935f8b35ab6b94136c7b
         with:
           sarif_file: "${{ steps.anchore.outputs.sarif }}"
 
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload Clair scan SARIF report
         if: always()
-        uses: github/codeql-action/upload-sarif@9f45e7498becbbc08084a122b4be9ab534ac6d88
+        uses: github/codeql-action/upload-sarif@efffb483ec7bb162c4b7935f8b35ab6b94136c7b
         with:
           sarif_file: clair_results.sarif
 

@@ -147,7 +147,7 @@ jobs:
         with:
           image: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           exit-code: 42
-          failure-threshold: high
+          failure-threshold: HIGH
 
   provenance:
     needs: [lint, build]

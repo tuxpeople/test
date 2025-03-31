@@ -57,7 +57,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           sbom: true
           provenance: true
-          outputs: type=docker,dest=image.tar
+          outputs: type=oci,dest=image.tar
 
       - name: Upload Docker Image as Artifact
         uses: actions/upload-artifact@v4
@@ -96,8 +96,9 @@ jobs:
           name: docker-image
           path: .
 
-      - name: Load Docker Image
-        run: docker load -i image.tar
+      - name: Load Docker Image (OCI)
+        run: |
+          buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
 
       - name: Scan Image for Vulnerabilities
         uses: aquasecurity/trivy-action@master

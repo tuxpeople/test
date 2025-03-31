@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Load image
+        if: ${{ always() }}
+        shell: bash
         run: |
           docker pull ${{ inputs.image }}
       - name: Dockle Linter

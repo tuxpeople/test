@@ -92,6 +92,10 @@ jobs:
       contents: read
       security-events: write
     steps:
+      - name: Pull image
+        run: |
+          docker pull ${{ env.CONTAINER_TEST_IMAGE }}
+
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master
         with:

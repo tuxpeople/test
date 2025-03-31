@@ -1,0 +1,53 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Linter"
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: >
+          The OCI image name of the image responsible for being 
+          scanned. This must include a tag or digest.
+        required: true
+        type: string
+      dockerfile:
+        description: >
+          Name and Path to the Dockerfile
+        required: false
+        type: string
+        default: "Dockerfile"
+
+jobs:
+  dockle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dockle Linter
+        uses: erzz/dockle-action@v1.3.2
+        if: ${{ always() }}
+        with:
+          image: ${{ inputs.builder-image }}
+          exit-code: 42
+          failure-threshold: high
+
+  hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        id: hadolint
+        if: ${{ always() }}
+        with:
+          dockerfile: Dockerfile
+          verbose: true
+          format: "json"
+          failure-threshold: "error"
+      - name: View Hadolint results
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo "::group::Hadolint Scan Details"
+          echo "${HADOLINT_RESULTS}" | jq '.' 
+          echo "::endgroup::"

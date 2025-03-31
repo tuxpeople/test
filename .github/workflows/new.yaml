@@ -123,7 +123,8 @@ jobs:
       - name: Load Docker Image (OCI)
         run: |
           ls -latr
-          sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          docker load -i image.tar
 
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master

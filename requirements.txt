@@ -1,10 +1,1 @@
-flask
 python-dotenv
-flask-httpauth
-flask-bcrypt
-flask-login
-gunicorn
-flask-limiter
-#flask-sqlalchemy
-#kr8s
-gunicorn

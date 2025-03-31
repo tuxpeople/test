@@ -124,7 +124,7 @@ jobs:
         run: |
           ls -latr
           #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
-          docker import image.tar # ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker import image.tar ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master

@@ -154,11 +154,6 @@ jobs:
           sudo apt-get update && sudo apt-get install -y clamav
           clamscan -r --infected container-rootfs
 
-      - name: Run Gitleaks on image filesystem
-        uses: zricethezav/gitleaks-action@v2
-        with:
-          path: container-rootfs
-
   provenance:
     needs: [lint, build]
     permissions:

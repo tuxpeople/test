@@ -141,7 +141,7 @@ jobs:
 
       - name: Scan image with trufflehog
         run: |
-          docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown
 
       - name: Export container filesystem
         run: |

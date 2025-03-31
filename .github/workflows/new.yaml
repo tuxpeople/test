@@ -144,7 +144,7 @@ jobs:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 
   sign:
-    needs: [provenance]
+    needs: [provenance, scan]
     runs-on: ubuntu-latest
     steps:
       - name: Sign the Image and Attestation

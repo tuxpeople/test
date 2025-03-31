@@ -4,10 +4,10 @@ name: "Test"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "master"
-      - "main"
+  # push:
+  #   branches:
+  #     - "master"
+  #     - "main"
 
 env:
   IMAGE_REGISTRY: ghcr.io
@@ -90,6 +90,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
       - name: Download Docker Image
         uses: actions/download-artifact@v4
         with:

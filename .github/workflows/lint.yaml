@@ -26,7 +26,7 @@ jobs:
         uses: erzz/dockle-action@v1.4.0
         if: ${{ always() }}
         with:
-          image: ${{ inputs.builder-image }}
+          image: ${{ inputs.image }}
           exit-code: 42
           failure-threshold: high
 
@@ -40,7 +40,7 @@ jobs:
         id: hadolint
         if: ${{ always() }}
         with:
-          dockerfile: Dockerfile
+          dockerfile: ${{ inputs.dockerfile }}
           verbose: true
           format: "json"
           failure-threshold: "error"

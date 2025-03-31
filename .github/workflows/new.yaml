@@ -139,6 +139,10 @@ jobs:
           exit-code: 42
           failure-threshold: fatal
 
+      - name: Scan image with trufflehog
+        run: |
+          docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown
+
       - name: Export container filesystem
         run: |
           docker save -o image.tar ${{ env.CONTAINER_TEST_IMAGE }}

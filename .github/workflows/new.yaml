@@ -111,7 +111,7 @@ jobs:
 
       - name: Start BuildKit Daemon
         run: |
-          sudo buildkitd
+          sudo buildkitd &
           sleep 5  # Warte, bis BuildKit läuft
 
       - name: Download Docker Image

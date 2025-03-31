@@ -139,6 +139,22 @@ jobs:
           exit-code: 42
           failure-threshold: fatal
 
+      - name: Export container filesystem
+        run: |
+          docker save -o image.tar ${{ env.CONTAINER_TEST_IMAGE }}
+          mkdir -p container-rootfs
+          tar -xf image.tar -C container-rootfs
+
+      - name: Scan with ClamAV
+        run: |
+          apt-get update && apt-get install -y clamav
+          clamscan -r --infected container-rootfs
+
+      - name: Run Gitleaks on image filesystem
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          path: container-rootfs
+
   provenance:
     needs: [lint, build]
     permissions:
@@ -153,6 +169,31 @@ jobs:
       registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  verify-supply-chain:
+    needs: [provenance]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install in-toto
+        run: |
+          pip install in-toto
+
+      - name: Download Attestation
+        run: |
+          cosign verify-attestation \
+            --type slsaprovenance \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity https://github.com/${{ github.repository }}/.github/workflows/${{ github.workflow }} \
+            ${{ needs.provenance.outputs.image }} > attestation.json
+
+      - name: Verify supply chain integrity with in-toto
+        run: |
+          in-toto-verify \
+            --layout attestation.json \
+            --layout-key slsa.pub
 
   push:
     needs: [provenance, scan]

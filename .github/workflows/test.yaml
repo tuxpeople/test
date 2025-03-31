@@ -65,6 +65,7 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
+          echo "output_tags=$DOCKER_METADATA_OUTPUT_TAGS" >> "$GITHUB_OUTPUT"
 
   lint:
     needs: [build]
@@ -74,7 +75,7 @@ jobs:
       packages: write # for uploading attestations.
     uses: tuxpeople/test/.github/workflows/lint.yaml@main
     with:
-      image: ${{ steps.meta.outputs.tags }}
+      image: ${{ needs.build.outputs.output_tags }}
 
   Anchore-Build-Scan:
     needs: [build]

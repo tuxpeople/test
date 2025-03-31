@@ -120,6 +120,7 @@ jobs:
           echo "::group::Hadolint Scan Details"
           echo "${HADOLINT_RESULTS}" | jq '.' 
           echo "::endgroup::"
+          docker image ls
 
   provenance:
     needs: [build]

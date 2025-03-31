@@ -68,7 +68,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Dockle Linter
-        uses: erzz/dockle-action@v1.3.2
+        uses: erzz/dockle-action@v1.4.0
         if: ${{ always() }}
         with:
           image: ${{ steps.meta.outputs.tags }}

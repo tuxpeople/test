@@ -4,6 +4,10 @@ name: "Test"
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - "master"
+      - "main"
 
 env:
   IMAGE_REGISTRY: ghcr.io

@@ -189,8 +189,7 @@ jobs:
         run: |
           cosign verify-attestation \
             --type slsaprovenance \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity https://github.com/${{ github.repository }}/.github/workflows/${{ github.workflow }} \
+            --key env://COSIGN_PRIVATE_KEY \
             ${{ needs.provenance.outputs.image }} > attestation.json
 
       - name: Verify supply chain integrity with in-toto

@@ -133,21 +133,23 @@ jobs:
 
   provenance:
     needs: [build]
-    runs-on: ubuntu-latest
     permissions:
       actions: read # for detecting the Github Actions environment.
       id-token: write # for creating OIDC tokens for signing.
       packages: write # for uploading attestations.
-    steps:
-      - name: Generate SLSA attestation
-        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
-        with:
-          image: ${{ needs.build.outputs.image }}
-          digest: ${{ needs.build.outputs.digest }}
-          registry-username: ${{ github.actor }}
-        secrets:
-          registry-password: ${{ secrets.GITHUB_TOKEN }}
+    #if: startsWith(github.ref, 'refs/tags/')
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+    with:
+      image: ${{ needs.build.outputs.image }}
+      digest: ${{ needs.build.outputs.digest }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
 
+  sign:
+    needs: [provenance]
+    runs-on: ubuntu-latest
+    steps:
       - name: Sign the Image and Attestation
         uses: sigstore/cosign-installer@v3
         with:

@@ -213,6 +213,7 @@ jobs:
         run: |
           #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
           docker import image.tar ${{ needs.build.outputs.image_tags }}
+          docker image ls
 
       - name: Posh image
         run: |

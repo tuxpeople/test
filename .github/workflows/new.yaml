@@ -12,6 +12,7 @@ on:
 env:
   IMAGE_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_TEST_IMAGE: ttl.sh/${{ github.sha }}:2h
 
 jobs:
   lint:
@@ -54,13 +55,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-      - name: Authenticate Docker
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        with:
-          registry: ${{ env.IMAGE_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
@@ -76,18 +70,11 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         id: build
         with:
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
+          push: true
+          tags: ${{ env.CONTAINER_TEST_IMAGE }}
           labels: ${{ steps.meta.outputs.labels }}
           sbom: true
           provenance: true
-          outputs: type=oci,dest=image.tar
-
-      - name: Upload Docker Image as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: image.tar
 
       - name: Output image
         id: image
@@ -105,34 +92,10 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - name: Install BuildKit (buildctl)
-        run: |
-          VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/moby/buildkit/releases/latest)
-          VERSION=${VERSION##*/}
-          wget https://github.com/moby/buildkit/releases/download/$VERSION/buildkit-$VERSION.linux-amd64.tar.gz -O buildkit.tar.gz
-          tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
-          buildctl --version
-
-      - name: Start BuildKit Daemon
-        run: |
-          sudo buildkitd &
-          sleep 5  # Warte, bis BuildKit läuft
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-          path: .
-
-      - name: Load Docker Image (OCI)
-        run: |
-          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
-          docker import image.tar ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
           vuln-type: os,library
           severity: CRITICAL,HIGH
           format: sarif
@@ -149,7 +112,7 @@ jobs:
         uses: anchore/scan-action@7c05671ae9be166aeb155bad2d7df9121823df32 # v6.1.0
         id: anchore
         with:
-          image: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          image: ${{ env.CONTAINER_TEST_IMAGE }}
           fail-build: true
           severity-cutoff: high
 
@@ -167,7 +130,7 @@ jobs:
         uses: erzz/dockle-action@v1.4.0
         if: ${{ always() }}
         with:
-          image: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          image: ${{ env.CONTAINER_TEST_IMAGE }}
           exit-code: 42
           failure-threshold: fatal
 
@@ -190,34 +153,16 @@ jobs:
     needs: [provenance, scan]
     runs-on: ubuntu-latest
     steps:
-      - name: Install BuildKit (buildctl)
-        run: |
-          VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/moby/buildkit/releases/latest)
-          VERSION=${VERSION##*/}
-          wget https://github.com/moby/buildkit/releases/download/$VERSION/buildkit-$VERSION.linux-amd64.tar.gz -O buildkit.tar.gz
-          tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
-          buildctl --version
-
-      - name: Start BuildKit Daemon
-        run: |
-          sudo buildkitd &
-          sleep 5  # Warte, bis BuildKit läuft
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
+      - name: Authenticate Docker
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
-          name: docker-image
-          path: .
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load Docker Image (OCI)
+      - name: Push image
         run: |
-          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
-          docker import image.tar ${{ needs.build.outputs.image_tags }}
-          docker image ls
-
-      - name: Posh image
-        run: |
-          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          docker tag ${{ env.CONTAINER_TEST_IMAGE }} ${{ needs.build.outputs.image_tags }}
           docker push ${{ needs.build.outputs.image_tags }}
 
   sign:

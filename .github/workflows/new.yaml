@@ -147,7 +147,7 @@ jobs:
 
       - name: Scan with ClamAV
         run: |
-          apt-get update && sudo apt-get install -y clamav
+          sudo apt-get update && sudo apt-get install -y clamav
           clamscan -r --infected container-rootfs
 
       - name: Run Gitleaks on image filesystem
@@ -199,11 +199,15 @@ jobs:
           in-toto-verify \
             --layout attestation.json \
             --layout-key slsa.pub
-
-  push:
+  sign_push:
     needs: [verify-supply-chain, scan]
     runs-on: ubuntu-latest
     steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-version: "latest"
+
       - name: Authenticate Docker
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
@@ -211,11 +215,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
+      - name: Tag & Sign Image
         run: |
           for tag in ${{ needs.build.outputs.image_tags }}; do
             docker tag ${{ env.CONTAINER_TEST_IMAGE }} "$tag"
+            cosign sign --yes ${{ needs.build.outputs.image }} \
+              --key env://COSIGN_PRIVATE_KEY
+          done
+
+      - name: Push image
+        run: |
+          for tag in ${{ needs.build.outputs.image_tags }}; do
             docker push "$tag"
+            cosign attest --yes --predicate attestation.json "$tag"
           done
 
   sign:

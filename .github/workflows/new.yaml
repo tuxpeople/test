@@ -131,11 +131,18 @@ jobs:
         with:
           sarif_file: "${{ steps.anchore.outputs.sarif }}"
 
-      - name: Run Clair
+      - name: Run Clair update
+        uses: quay/clair-action@main
+        with:
+          db-file: matcher.db
+          mode: update
+
+      - name: Run Clair scan
         uses: quay/clair-action@main
         if: always()
         with:
           image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
+          db-file: matcher.db
           format: sarif
           output: clair_results.sarif
 

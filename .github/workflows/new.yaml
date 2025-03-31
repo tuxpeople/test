@@ -109,6 +109,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
           sarif_file: trivy-results.sarif
 
@@ -166,8 +167,10 @@ jobs:
 
       - name: Push image
         run: |
-          docker tag ${{ env.CONTAINER_TEST_IMAGE }} ${{ needs.build.outputs.image_tags }}
-          docker push ${{ needs.build.outputs.image_tags }}
+          for tag in ${{ needs.build.outputs.image_tags }}; do
+            docker tag ${{ env.CONTAINER_TEST_IMAGE }} "$tag"
+            docker push "$tag"
+          done
 
   sign:
     needs: [push]

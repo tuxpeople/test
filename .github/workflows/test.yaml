@@ -46,6 +46,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: true
 
       - name: Output image
         id: image
@@ -54,6 +56,25 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
+
+  Anchore-Build-Scan:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the Anchore Grype scan action
+        uses: anchore/scan-action@9a22e4caae42db0d4c687ab5431e1c3699d0def1
+        id: scan
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          fail-build: false
+          severity-cutoff: critical
+      - name: Upload vulnerability report
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.

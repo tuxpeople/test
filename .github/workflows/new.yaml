@@ -122,15 +122,22 @@ jobs:
 
       - name: Load Docker Image (OCI)
         run: |
-          buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
 
-      - name: Scan Image for Vulnerabilities
+      - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           format: "table"
           exit-code: 1 # Bricht ab, wenn kritische CVEs gefunden werden
           ignore-unfixed: true
+
+      - name: Scan Image for Vulnerabilities with anchore
+        uses: anchore/scan-action@7c05671ae9be166aeb155bad2d7df9121823df32 # v6.1.0
+        with:
+          image: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          fail-build: true
+          severity-cutoff: high
 
       - name: Dockle Linter
         uses: erzz/dockle-action@v1.4.0

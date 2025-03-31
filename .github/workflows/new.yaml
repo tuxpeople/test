@@ -199,6 +199,7 @@ jobs:
           in-toto-verify \
             --layout attestation.json \
             --layout-key slsa.pub
+
   sign_push:
     needs: [verify-supply-chain, scan]
     runs-on: ubuntu-latest
@@ -229,20 +230,3 @@ jobs:
             docker push "$tag"
             cosign attest --yes --predicate attestation.json "$tag"
           done
-
-  sign:
-    needs: [push]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Sign the Image and Attestation
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-version: "latest"
-
-      - name: Sign Image
-        run: |
-          cosign sign --yes ${{ needs.build.outputs.image_tags }}
-
-      - name: Push Attestation
-        run: |
-          cosign attest --yes --predicate attestation.json ${{ needs.build.outputs.image_tags }}

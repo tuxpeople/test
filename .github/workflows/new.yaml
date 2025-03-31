@@ -96,6 +96,7 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
+          echo "image_tags=${{ steps.meta.outputs.tags }}" >> "$GITHUB_OUTPUT"
 
   scan:
     needs: [lint, build]
@@ -185,8 +186,41 @@ jobs:
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 
-  sign:
+  push:
     needs: [provenance, scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install BuildKit (buildctl)
+        run: |
+          VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/moby/buildkit/releases/latest)
+          VERSION=${VERSION##*/}
+          wget https://github.com/moby/buildkit/releases/download/$VERSION/buildkit-$VERSION.linux-amd64.tar.gz -O buildkit.tar.gz
+          tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
+          buildctl --version
+
+      - name: Start BuildKit Daemon
+        run: |
+          sudo buildkitd &
+          sleep 5  # Warte, bis BuildKit läuft
+
+      - name: Download Docker Image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: .
+
+      - name: Load Docker Image (OCI)
+        run: |
+          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          docker import image.tar ${{ needs.build.outputs.image_tags }}
+
+      - name: Posh image
+        run: |
+          #sudo buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
+          docker push ${{ needs.build.outputs.image_tags }}
+
+  sign:
+    needs: [push]
     runs-on: ubuntu-latest
     steps:
       - name: Sign the Image and Attestation
@@ -196,8 +230,8 @@ jobs:
 
       - name: Sign Image
         run: |
-          cosign sign --yes ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cosign sign --yes ${{ needs.build.outputs.image_tags }}
 
       - name: Push Attestation
         run: |
-          cosign attest --yes --predicate attestation.json ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cosign attest --yes --predicate attestation.json ${{ needs.build.outputs.image_tags }}

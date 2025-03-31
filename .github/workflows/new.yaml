@@ -77,11 +77,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Install buildkit
+      - name: Install BuildKit (buildctl)
         run: |
-          wget https://github.com/moby/buildkit/releases/download/v0.16.0/buildkit-v0.16.0.linux-amd64.tar.gz -O buildkit.tar.gz
-          tar -xzvf buildkit.tar.gz -C /usr/local/bin/  --strip-components=1
-          buildctl --version
+          sudo apt-get update && sudo apt-get install -y buildkit
+
+      - name: Start BuildKit Daemon
+        run: |
+          sudo systemctl start buildkit
+          sleep 5  # Warte, bis BuildKit läuft
 
       - name: Download Docker Image
         uses: actions/download-artifact@v4

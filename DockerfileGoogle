@@ -1,0 +1,31 @@
+FROM cgr.dev/chainguard/wolfi-base AS builder
+
+ARG version=3.12
+
+ENV LANG=C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/venv/bin:$PATH"
+
+WORKDIR /app
+
+RUN apk update && apk add python-$version py${version}-pip && \
+	chown -R nonroot:nonroot /app/
+USER nonroot
+RUN python -m venv /app/venv
+
+COPY requirements.txt /app/
+RUN  pip install --no-cache-dir -r requirements.txt
+
+FROM gcr.io/distroless/python3-debian12:nonroot
+
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/bin:$PATH"
+
+WORKDIR /app
+
+COPY --from=builder /app/venv /app
+
+COPY linky.py linky.png /app/
+
+ENTRYPOINT [ "python", "/app/linky.py" ]

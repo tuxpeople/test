@@ -189,7 +189,7 @@ jobs:
           failure-threshold: fatal
 
       - name: Upload Dockle Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Dockle Report
@@ -200,7 +200,7 @@ jobs:
           docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown --json
 
       - name: Upload trufflehog Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: trufflehog Report
@@ -218,7 +218,7 @@ jobs:
           clamscan -r --infected container-rootfs | tee clamscan.log
 
       - name: Upload ClamAV Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ClamAV Report

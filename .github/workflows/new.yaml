@@ -162,10 +162,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: anchore-results
+          name: clair-results
           path: clair_results.sarif
 
       - name: Run NeuVector scan
+        if: always()
         uses: neuvector/scan-action@main
         with:
           debug: false
@@ -177,6 +178,7 @@ jobs:
           output: text
 
       - name: neuvector report?
+        if: always()
         run: |
           ls -latr
 
@@ -196,6 +198,7 @@ jobs:
           path: dockle-report.json
 
       - name: Scan image with trufflehog
+        if: always()
         run: |
           docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown --json
 
@@ -207,12 +210,14 @@ jobs:
           path: output.json
 
       - name: Export container filesystem
+        if: always()
         run: |
           docker save -o image.tar ${{ env.CONTAINER_TEST_IMAGE }}
           mkdir -p container-rootfs
           tar -xf image.tar -C container-rootfs
 
       - name: Scan with ClamAV
+        if: always()
         run: |
           sudo apt-get update && sudo apt-get install -y clamav
           clamscan -r --infected container-rootfs | tee clamscan.log
@@ -225,6 +230,7 @@ jobs:
           path: clamscan.log
 
       - name: "Debug: ls"
+        if: always()
         run: |
           ls -latr
 

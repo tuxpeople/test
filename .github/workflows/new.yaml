@@ -103,16 +103,16 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
           format: spdx-json
-          output: trivy-results-spdx.json
+          output: reports/trivy-results-spdx.json
           exit-code: 1 # Bricht ab, wenn kritische CVEs gefunden werden
           ignore-unfixed: true
 
-      - name: Upload Trivy scan report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-results
-          path: trivy-results-spdx.json
+      # - name: Upload Trivy scan report
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: trivy-results
+      #     path: trivy-results-spdx.json
 
       - name: Scan Image for Vulnerabilities with anchore
         uses: anchore/scan-action@7c05671ae9be166aeb155bad2d7df9121823df32 # v6.1.0
@@ -122,14 +122,14 @@ jobs:
           fail-build: true
           severity-cutoff: high
           output-format: cyclonedx-json
-          output-file: anchore-results-cyclonedx.json
+          output-file: reports/anchore-results-cyclonedx.json
 
-      - name: Upload Anchore scan report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: anchore-results
-          path: anchore-results-cyclonedx.json
+      # - name: Upload Anchore scan report
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: anchore-results
+      #     path: anchore-results-cyclonedx.json
 
       - name: Grab cache Clair DB
         uses: actions/cache@v3
@@ -156,14 +156,14 @@ jobs:
           image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
           db-file: matcher.db
           format: sarif
-          output: clair_results.sarif
+          output: reports/clair_results.sarif
 
-      - name: Upload Clair scan report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: clair-results
-          path: clair_results.sarif
+      # - name: Upload Clair scan report
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: clair-results
+      #     path: clair_results.sarif
 
       - name: Run NeuVector scan
         if: always()
@@ -177,10 +177,11 @@ jobs:
           min-medium-cves-to-fail: "1"
           output: text
 
-      - name: neuvector report?
+      - name: Prepare NeuVector Report
         if: always()
         run: |
-          ls -latr
+          cp scanner_output.log reports/neuvector_scanner_output.log
+          cp scan_result.json reports/neuvector_scan_result.json
 
       - name: Dockle Linter
         uses: erzz/dockle-action@v1.4.0
@@ -190,24 +191,22 @@ jobs:
           exit-code: 42
           failure-threshold: fatal
 
-      - name: Upload Dockle Report
-        uses: actions/upload-artifact@v4
+      - name: Prepare Dockle Report
         if: always()
-        with:
-          name: Dockle Report
-          path: dockle-report.json
+        run: |
+          cp dockle-report.json reports/dockle-report.json
 
       - name: Scan image with trufflehog
         if: always()
         run: |
-          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown --json
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown --json  | jq > reports/trufflehog-report.json
 
-      - name: Upload trufflehog Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: trufflehog Report
-          path: output.json
+      # - name: Upload trufflehog Report
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: trufflehog Report
+      #     path: output.json
 
       - name: Export container filesystem
         if: always()
@@ -220,14 +219,21 @@ jobs:
         if: always()
         run: |
           sudo apt-get update && sudo apt-get install -y clamav
-          clamscan -r --infected container-rootfs | tee clamscan.log
+          clamscan -r --infected container-rootfs | tee reports/clamscan.log
 
-      - name: Upload ClamAV Report
+      # - name: Upload ClamAV Report
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: ClamAV Report
+      #     path: clamscan.log
+
+      - name: Upload Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ClamAV Report
-          path: clamscan.log
+          name: Scan Reports
+          path: reports
 
       - name: "Debug: ls"
         if: always()

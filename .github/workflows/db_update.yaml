@@ -17,7 +17,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Grab cache Clair DB
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: matcher.db
           key: matcher.db
@@ -29,7 +29,7 @@ jobs:
           mode: update
 
       - name: update cache Clair DB
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: matcher.db
           key: matcher.db

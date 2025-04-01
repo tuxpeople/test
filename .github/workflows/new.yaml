@@ -83,7 +83,12 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
-          echo "image_tags=${{ steps.meta.outputs.tags }}" >> "$GITHUB_OUTPUT"
+          echo "image_tags=${{ steps.meta.outputs.tags }}" >> "$GITHUB_OUTPUT"reports
+
+      - name: "Debug: ls"
+        if: always()
+        run: |
+          ls -latr
 
   scan:
     needs: [lint, build]
@@ -95,6 +100,10 @@ jobs:
       - name: Pull image
         run: |
           docker pull ${{ env.CONTAINER_TEST_IMAGE }}
+
+      - name: Prepare Reports Directory
+        run: |
+          mkdir reports
 
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master
@@ -276,7 +285,7 @@ jobs:
           cosign verify-attestation \
             --type slsaprovenance \
             --key env://COSIGN_PRIVATE_KEY \
-            ${{ needs.provenance.outputs.image }} > attestation.json
+            ${{ needs.build.outputs.image }}@${{ needs.build.outputs.digest }} > attestation.json
 
       - name: Verify supply chain integrity with in-toto
         run: |

@@ -297,6 +297,8 @@ jobs:
           pip install in-toto
 
       - name: Download Attestation
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
           cosign verify-attestation \
             --type slsaprovenance \

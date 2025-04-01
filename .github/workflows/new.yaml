@@ -102,16 +102,17 @@ jobs:
           image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
           vuln-type: os,library
           severity: CRITICAL,HIGH
-          format: sarif
-          output: trivy-results.sarif
+          format: spdx-json
+          output: trivy-results-spdx.json
           exit-code: 1 # Bricht ab, wenn kritische CVEs gefunden werden
           ignore-unfixed: true
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload Trivy scan report
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: trivy-results.sarif
+          name: trivy-results
+          path: trivy-results-spdx.json
 
       - name: Scan Image for Vulnerabilities with anchore
         uses: anchore/scan-action@7c05671ae9be166aeb155bad2d7df9121823df32 # v6.1.0
@@ -120,16 +121,15 @@ jobs:
           image: ${{ env.CONTAINER_TEST_IMAGE }}
           fail-build: true
           severity-cutoff: high
+          output-format: cyclonedx-json
+          output-file: anchore-results-cyclonedx.json
 
-      - name: Show Anchore scan SARIF report
+      - name: Upload Anchore scan report
         if: always()
-        run: cat ${{ steps.anchore.outputs.sarif }}
-
-      - name: Upload Anchore scan SARIF report
-        if: always()
-        uses: github/codeql-action/upload-sarif@9f45e7498becbbc08084a122b4be9ab534ac6d88
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: "${{ steps.anchore.outputs.sarif }}"
+          name: anchore-results
+          path: anchore-results-cyclonedx.json
 
       - name: Grab cache Clair DB
         uses: actions/cache@v3
@@ -137,17 +137,17 @@ jobs:
           path: matcher.db
           key: matcher.db
 
-#      - name: Run Clair update DB
-#        uses: quay/clair-action@main
-#        with:
-#          db-file: matcher.db
-#          mode: update
-#
-#      - name: update cache Clair DB
-#        uses: actions/cache@v3
-#        with:
-#          path: matcher.db
-#          key: matcher.db
+      #      - name: Run Clair update DB
+      #        uses: quay/clair-action@main
+      #        with:
+      #          db-file: matcher.db
+      #          mode: update
+      #
+      #      - name: update cache Clair DB
+      #        uses: actions/cache@v3
+      #        with:
+      #          path: matcher.db
+      #          key: matcher.db
 
       - name: Run Clair scan
         uses: quay/clair-action@main
@@ -158,13 +158,14 @@ jobs:
           format: sarif
           output: clair_results.sarif
 
-      - name: Upload Clair scan SARIF report
+      - name: Upload Clair scan report
         if: always()
-        uses: github/codeql-action/upload-sarif@9f45e7498becbbc08084a122b4be9ab534ac6d88
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: clair_results.sarif
+          name: anchore-results
+          path: clair_results.sarif
 
-      - name:
+      - name: Run NeuVector scan
         uses: neuvector/scan-action@main
         with:
           debug: false
@@ -173,6 +174,11 @@ jobs:
           image-tag: 2h
           min-high-cves-to-fail: "1"
           min-medium-cves-to-fail: "1"
+          output: text
+
+      - name: neuvector report?
+        run: |
+          ls -latr
 
       - name: Dockle Linter
         uses: erzz/dockle-action@v1.4.0
@@ -182,9 +188,23 @@ jobs:
           exit-code: 42
           failure-threshold: fatal
 
+      - name: Upload Dockle Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Dockle Report
+          path: dockle-report.json
+
       - name: Scan image with trufflehog
         run: |
-          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest docker --image ${{ env.CONTAINER_TEST_IMAGE }} --results=verified,unknown --json
+
+      - name: Upload trufflehog Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: trufflehog Report
+          path: output.json
 
       - name: Export container filesystem
         run: |
@@ -195,7 +215,14 @@ jobs:
       - name: Scan with ClamAV
         run: |
           sudo apt-get update && sudo apt-get install -y clamav
-          clamscan -r --infected container-rootfs
+          clamscan -r --infected container-rootfs | tee clamscan.log
+
+      - name: Upload ClamAV Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ClamAV Report
+          path: clamscan.log
 
       - name: "Debug: ls"
         run: |

@@ -132,7 +132,7 @@ jobs:
           sarif_file: "${{ steps.anchore.outputs.sarif }}"
 
       - name: Grab cache Clair DB
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: matcher.db
           key: matcher.db

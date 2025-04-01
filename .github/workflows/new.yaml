@@ -110,16 +110,14 @@ jobs:
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}
           format: spdx-json
-          artifact-name: reports/sbom.spdx.json
-          upload-artifact: true
+          output-file: reports/sbom.spdx.json
 
       - name: Generate SBOM for container (cyclonedx-json)
         uses: anchore/sbom-action@df80a981bc6edbc4e220a492d3cbe9f5547a6e75 # v0.17.9
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}
           format: cyclonedx-json
-          artifact-name: reports/sbom.cyclonedx.json
-          upload-artifact: true
+          output-file: reports/sbom.cyclonedx.json
 
       - name: Scan Image for Vulnerabilities with trivy
         uses: aquasecurity/trivy-action@master

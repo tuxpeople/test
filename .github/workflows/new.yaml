@@ -180,8 +180,8 @@ jobs:
       - name: Prepare NeuVector Report
         if: always()
         run: |
-          cp scanner_output.log reports/neuvector_scanner_output.log
-          cp scan_result.json reports/neuvector_scan_result.json
+          mv scanner_output.log reports/neuvector_scanner_output.log
+          mv scan_result.json reports/neuvector_scan_result.json
 
       - name: Dockle Linter
         uses: erzz/dockle-action@v1.4.0
@@ -194,7 +194,7 @@ jobs:
       - name: Prepare Dockle Report
         if: always()
         run: |
-          cp dockle-report.json reports/dockle-report.json
+          mv dockle-report.json reports/dockle-report.json
 
       - name: Scan image with trufflehog
         if: always()

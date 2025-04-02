@@ -300,7 +300,7 @@ jobs:
         run: |
           cosign verify-attestation \
             --type slsaprovenance \
-            --key env://COSIGN_PRIVATE_KEY \
+            --key cosign.pub \
             ${{ needs.build.outputs.image }}@${{ needs.build.outputs.digest }} > attestation.json
 
       - name: Verify supply chain integrity with in-toto

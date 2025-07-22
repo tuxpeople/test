@@ -127,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run the Anchore Grype scan action
-        uses: anchore/scan-action@074346992e1b3d8ab9604d26d84e88bca3440a43
+        uses: anchore/scan-action@df395807f4554463d4455b8047cf58e37b6acaae
         id: scan
         with:
           image: ${{ steps.meta.outputs.tags }}

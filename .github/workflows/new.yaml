@@ -252,7 +252,7 @@ jobs:
       #     path: clamscan.log
 
       - name: Upload Reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Scan Reports

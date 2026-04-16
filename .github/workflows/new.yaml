@@ -207,7 +207,7 @@ jobs:
           mv scan_result.json reports/neuvector_scan_result.json
 
       - name: Dockle Linter
-        uses: erzz/dockle-action@v1.4.0
+        uses: erzz/dockle-action@v1.4.1
         if: ${{ always() }}
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}

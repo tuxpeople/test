@@ -28,7 +28,7 @@ jobs:
         run: |
           docker pull ${{ inputs.image }}
       - name: Dockle Linter
-        uses: erzz/dockle-action@v1.4.0
+        uses: erzz/dockle-action@v1.4.1
         if: ${{ always() }}
         with:
           image: ${{ inputs.image }}

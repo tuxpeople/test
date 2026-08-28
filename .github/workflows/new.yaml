@@ -138,7 +138,7 @@ jobs:
       #     path: trivy-results-spdx.json
 
       - name: Scan Image for Vulnerabilities with anchore
-        uses: anchore/scan-action@8d2fce09422cd6037e577f4130e9b925e9a37175 # v7.3.1
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         id: anchore
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}

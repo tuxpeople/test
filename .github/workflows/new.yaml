@@ -106,14 +106,14 @@ jobs:
           mkdir reports
 
       - name: Generate SBOM for container (spdx-json)
-        uses: anchore/sbom-action@deef08a0db64bfad603422135db61477b16cef56 # v0.22.1
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}
           format: spdx-json
           output-file: reports/sbom.spdx.json
 
       - name: Generate SBOM for container (cyclonedx-json)
-        uses: anchore/sbom-action@deef08a0db64bfad603422135db61477b16cef56 # v0.22.1
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: ${{ env.CONTAINER_TEST_IMAGE }}
           format: cyclonedx-json

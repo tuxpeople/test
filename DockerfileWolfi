@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/wolfi-base AS builder
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:88a20e2d017bd20cdc0cb3910de603e7bea9512a6c351a8dd3c9df212ab03d73 AS builder
 
 ARG version=3.12
 
@@ -17,7 +17,7 @@ RUN python -m venv /app/venv
 COPY requirements.txt /app/
 RUN  pip install --no-cache-dir -r requirements.txt
 
-FROM cgr.dev/chainguard/python:latest
+FROM cgr.dev/chainguard/python:latest@sha256:35d6025b288eb1c40ae631db77ed6cdd26c6f51d898428d8fc9989db7f29e784
 
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/app/bin:$PATH"

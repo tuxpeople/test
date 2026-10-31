@@ -283,7 +283,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Sign the Image and Attestation
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.2
         with:
           # renovate: datasource=github-releases depName=sigstore/cosign
           cosign-version: "v3.1.4"
@@ -315,7 +315,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.2
         with:
           # renovate: datasource=github-releases depName=sigstore/cosign
           cosign-version: "v3.1.4"

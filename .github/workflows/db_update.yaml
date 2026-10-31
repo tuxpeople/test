@@ -23,7 +23,7 @@ jobs:
           key: matcher.db
 
       - name: Run Clair update DB
-        uses: quay/clair-action@main
+        uses: quay/clair-action@a18e7f48119f7b048dd8bbf8a19adf0f4e32e891 # v0.0.16
         with:
           db-file: matcher.db
           mode: update

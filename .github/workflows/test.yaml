@@ -66,7 +66,7 @@ jobs:
           path: image.tar
 
       - name: Scan Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
           format: "table"
@@ -101,7 +101,7 @@ jobs:
           buildctl build --frontend=gateway.v0 --opt source=image.tar --output type=docker | docker load
 
       - name: Scan Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           format: "table"
@@ -114,7 +114,7 @@ jobs:
       actions: read # for detecting the Github Actions environment.
       id-token: write # for creating OIDC tokens for signing.
       packages: write # for uploading attestations.
-    uses: tuxpeople/test/.github/workflows/lint.yaml@main
+    uses: ./.github/workflows/lint.yaml
     with:
       image: ${{ needs.env.DOCKER_METADATA_OUTPUT_TAGS }}
 

@@ -120,7 +120,7 @@ jobs:
           output-file: reports/sbom.cyclonedx.json
 
       - name: Scan Image for Vulnerabilities with trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
           vuln-type: os,library
@@ -161,7 +161,7 @@ jobs:
           key: matcher.db
 
       #      - name: Run Clair update DB
-      #        uses: quay/clair-action@main
+      #        uses: quay/clair-action@a18e7f48119f7b048dd8bbf8a19adf0f4e32e891 # v0.0.16
       #        with:
       #          db-file: matcher.db
       #          mode: update
@@ -173,7 +173,7 @@ jobs:
       #          key: matcher.db
 
       - name: Run Clair scan
-        uses: quay/clair-action@main
+        uses: quay/clair-action@a18e7f48119f7b048dd8bbf8a19adf0f4e32e891 # v0.0.16
         if: always()
         with:
           image-ref: ${{ env.CONTAINER_TEST_IMAGE }}
@@ -190,7 +190,7 @@ jobs:
 
       - name: Run NeuVector scan
         if: always()
-        uses: neuvector/scan-action@main
+        uses: neuvector/scan-action@196964fb269cfcd1fe139dd27c8440a8396bd8ab # 1.0.0
         with:
           debug: false
           image-registry: https://ttl.sh
@@ -285,7 +285,8 @@ jobs:
       - name: Sign the Image and Attestation
         uses: sigstore/cosign-installer@v3
         with:
-          cosign-version: "latest"
+          # renovate: datasource=github-releases depName=sigstore/cosign
+          cosign-version: "v3.1.4"
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -316,7 +317,8 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
         with:
-          cosign-version: "latest"
+          # renovate: datasource=github-releases depName=sigstore/cosign
+          cosign-version: "v3.1.4"
 
       - name: Authenticate Docker
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
